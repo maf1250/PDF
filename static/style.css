@@ -1,0 +1,62 @@
+body {
+    font-family: Arial;
+    background: #f5f7fa;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 500px;
+    margin: auto;
+    text-align: center;
+}
+
+#drop-area {
+    border: 2px dashed #007bff;
+    padding: 30px;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+}
+
+#file-list {
+    list-style: none;
+    padding: 0;
+}
+
+#file-list li {
+    background: white;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    border: none;
+    background: #007bff;
+    color: white;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+#progress {
+    margin-top: 20px;
+    height: 10px;
+    background: #ddd;
+    border-radius: 5px;
+}
+
+.bar {
+    height: 100%;
+    width: 0%;
+    background: #28a745;
+    border-radius: 5px;
+}
+
+.hidden {
+    display: none;
+}
