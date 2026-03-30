@@ -4,27 +4,23 @@ body {
     margin: 0;
     padding: 20px;
 }
-
 .container {
     max-width: 500px;
     margin: auto;
     text-align: center;
     padding: 20px;
 }
-
 #drop-area {
     border: 2px dashed #007bff;
-    padding: 30px;
-    border-radius: 10px;
+    padding: 3px;
+    border-radius: 80px;
     background: white;
     cursor: pointer;
 }
-
 #file-list {
     list-style: none;
     padding: 0;
 }
-
 #file-list li {
     background: white;
     margin: 10px 0;
@@ -33,31 +29,27 @@ body {
     display: flex;
     justify-content: space-between;
 }
-
 button {
     margin-top: 20px;
     padding: 10px 20px;
     border: none;
     background: #007bff;
     color: white;
-    border-radius: 8px;
+    border-radius: 80px;
     font-size: 16px;
 }
-
 #progress {
     margin-top: 20px;
     height: 10px;
     background: #ddd;
-    border-radius: 5px;
+    border-radius: 40px;
 }
-
 .bar {
     height: 100%;
     width: 0%;
     background: #28a745;
-    border-radius: 5px;
+    border-radius: 40px;
 }
-
 .hidden {
     display: none;
 }
@@ -69,7 +61,6 @@ button {
   font-size: 15px;
   transition: all 0.3s ease;
 }
-
 #NewName:focus {
   border-color: #4CAF50;
   box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
@@ -82,5 +73,4 @@ button {
   border-radius: 80px;
   font-size: 15px;
   transition: all 0.3s ease;
-}
 }
