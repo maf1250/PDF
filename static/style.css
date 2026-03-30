@@ -9,6 +9,7 @@ body {
     max-width: 500px;
     margin: auto;
     text-align: center;
+    padding: 20px;
 }
 
 #drop-area {
@@ -59,4 +60,18 @@ button {
 
 .hidden {
     display: none;
+}
+#NewName {
+  padding: 12px 15px;
+  width: 60%;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+#NewName:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+  outline: none;
 }
