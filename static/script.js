@@ -78,7 +78,7 @@ mergeBtn.addEventListener("click", () => {
     link.href = window.URL.createObjectURL(blob);
     let inputEl = document.getElementById("NewName");
     let userInput = inputEl.value.trim();
-    let filename = userInput ? userInput : "merged";
+    let NewName = userInput ? userInput : "merged";
     link.download = NewName + ".pdf";
     link.click();
 };
