@@ -62,10 +62,10 @@ button {
     display: none;
 }
 #NewName {
-  padding: 12px 15px;
+  padding: 10px 15px;
   width: 60%;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 80px;
   font-size: 15px;
   transition: all 0.3s ease;
 }
@@ -74,4 +74,13 @@ button {
   border-color: #4CAF50;
   box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
   outline: none;
+}
+#pagesInput {
+  padding: 10px 15px;
+  width: 60%;
+  border: 1px solid #ddd;
+  border-radius: 80px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
 }
