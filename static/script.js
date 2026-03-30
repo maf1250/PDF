@@ -97,8 +97,8 @@ function removeFile(index) {
 }
 // ===== Merge PDFs =====
 mergeBtn.addEventListener("click", () => {
-    if (files.length === 0) alert("يرجى اختيار ملف");
-    return;
+    if (files.length === 0) { alert("يرجى اختيار ملف");
+    return;}
     let formData = new FormData();
     files.forEach(file => formData.append("pdfs", file));
     progress.classList.remove("hidden");
