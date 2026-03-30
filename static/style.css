@@ -60,6 +60,10 @@ button {
     font-size: 16px;
     cursor: pointer;
 }
+button:hover {
+box-shadow:0 1px 6px 0 rgba(0,0,0,0.6)
+background-color: #006CBD;
+}
 #progress {
     margin-top: 20px;
     height: 10px;
