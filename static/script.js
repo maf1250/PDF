@@ -179,7 +179,7 @@ async function deletePages() {
     link.href = url;
 
     let nameWithoutExt = file.name.replace(/\.pdf$/i, "");
-    link.download = nameWithoutExt + "_edited.pdf";
+    link.download = nameWithoutExt + "_جديد.pdf";
 
     link.click();
     window.URL.revokeObjectURL(url);
