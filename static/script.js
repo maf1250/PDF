@@ -1,3 +1,4 @@
+// ===== JS =====
 let files = [];
 const dropArea = document.getElementById("drop-area");
 const fileElem = document.getElementById("fileElem");
@@ -21,24 +22,36 @@ function handleFiles(selectedFiles) {
     renderList();
 }
 
-// ===== Render File List with Move Up / Move Down =====
+// ===== Render File List =====
 function renderList() {
     fileList.innerHTML = "";
     files.forEach((file, index) => {
         let li = document.createElement("li");
-        li.innerHTML = `
-            ${file.name} 
-            <div style="display:inline-flex; gap:5px">
-                <button onclick="moveUp(${index})">⬆️</button>
-                <button onclick="moveDown(${index})">⬇️</button>
-                <button onclick="removeFile(${index})">❌</button>
-            </div>
-        `;
+        li.textContent = file.name;
+
+        let div = document.createElement("div");
+        div.style.display = "inline-flex";
+        div.style.gap = "5px";
+
+        let upBtn = document.createElement("button");
+        upBtn.textContent = "⬆️";
+        upBtn.addEventListener("click", () => moveUp(index));
+
+        let downBtn = document.createElement("button");
+        downBtn.textContent = "⬇️";
+        downBtn.addEventListener("click", () => moveDown(index));
+
+        let removeBtn = document.createElement("button");
+        removeBtn.textContent = "❌";
+        removeBtn.addEventListener("click", () => removeFile(index));
+
+        div.append(upBtn, downBtn, removeBtn);
+        li.appendChild(div);
         fileList.appendChild(li);
     });
 }
 
-// ===== Move File Up / Down =====
+// ===== Move / Remove Files =====
 function moveUp(index) {
     if (index === 0) return;
     [files[index - 1], files[index]] = [files[index], files[index - 1]];
@@ -51,7 +64,6 @@ function moveDown(index) {
     renderList();
 }
 
-// ===== Remove File =====
 function removeFile(index) {
     files.splice(index, 1);
     renderList();
@@ -68,25 +80,35 @@ mergeBtn.addEventListener("click", () => {
 
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/merge");
+    xhr.responseType = "blob";
+
     xhr.upload.onprogress = (e) => {
         let percent = (e.loaded / e.total) * 100;
         bar.style.width = percent + "%";
     };
-   xhr.onload = () => {
-    let blob = new Blob([xhr.response], { type: "application/pdf" });
-    let link = document.createElement("a");
-    link.href = window.URL.createObjectURL(blob);
-    let inputEl = document.getElementById("NewName");
-    let userInput = inputEl.value.trim();
-    let NewName = userInput ? userInput : "merged";
-    link.download = NewName + ".pdf";
-    link.click();
-};
+
+    xhr.onload = () => {
+        if (xhr.status === 200) {
+            let blob = xhr.response;
+            let url = window.URL.createObjectURL(blob);
+            let link = document.createElement("a");
+            link.href = url;
+
+            let inputEl = document.getElementById("NewName");
+            let userInput = inputEl.value.trim();
+            let filename = userInput ? userInput : "merged";
+
+            link.download = filename + ".pdf";
+            link.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert("حدث خطأ أثناء الدمج");
+        }
 
         progress.classList.add("hidden");
         bar.style.width = "0%";
     };
-    xhr.responseType = "blob";
+
     xhr.send(formData);
 });
 
@@ -94,9 +116,10 @@ mergeBtn.addEventListener("click", () => {
 async function deletePages() {
     const file = document.getElementById("deleteFile").files[0];
     const pages = document.getElementById("pagesInput").value;
-    if (!file || !pages) { 
-        alert("يرجى اختيار ملف وإدخال الصفحات"); 
-        return; 
+
+    if (!file || !pages) {
+        alert("يرجى اختيار ملف وإدخال الصفحات");
+        return;
     }
 
     let formData = new FormData();
@@ -104,10 +127,19 @@ async function deletePages() {
     formData.append("pages", pages);
 
     let response = await fetch("/delete-pages", { method: "POST", body: formData });
-    let blob = await response.blob();
+    if (!response.ok) {
+        alert("حدث خطأ أثناء حذف الصفحات");
+        return;
+    }
 
+    let blob = await response.blob();
+    let url = window.URL.createObjectURL(blob);
     let link = document.createElement("a");
-    link.href = window.URL.createObjectURL(blob);
-    link.download = file + " edited.pdf";
+    link.href = url;
+
+    let nameWithoutExt = file.name.replace(/\.pdf$/i, "");
+    link.download = nameWithoutExt + "_edited.pdf";
+
     link.click();
+    window.URL.revokeObjectURL(url);
 }
