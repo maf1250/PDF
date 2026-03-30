@@ -22,13 +22,33 @@ body {
     padding: 0;
     border-radius: 80px;
 }
-#file-list li {
-    background: white;
-    margin: 10px 0;
-    padding: 10px;
-    border-radius: 80px;
+.file-list li.dragging {
+    opacity: 0.5;
+}
+.file-list li.dragover {
+    border: 2px dashed #4caf50;
+    background: #f0fff0;
+}
+.file-list li {
+    padding: 6px 10px;
+    margin-bottom: 5px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    border-radius: 80px;
+}
+.file-list li div button {
+    cursor: pointer;
+    padding: 2px 6px;
+    border: none;
+    background: #eee;
+    border-radius: 80px;
+    transition: background 0.3s;
+}
+.file-list li div button:hover {
+    background: #ddd;
 }
 button {
     margin-top: 20px;
