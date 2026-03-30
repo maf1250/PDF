@@ -5,7 +5,7 @@ body {
     padding: 20px;
 }
 .container {
-    max-width: 500px;
+    max-width: 300px;
     margin: auto;
     text-align: center;
     padding: 5px;
@@ -20,12 +20,13 @@ body {
 #file-list {
     list-style: none;
     padding: 0;
+    border-radius: 80px;
 }
 #file-list li {
     background: white;
     margin: 10px 0;
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 80px;
     display: flex;
     justify-content: space-between;
 }
