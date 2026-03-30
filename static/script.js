@@ -23,30 +23,71 @@ function handleFiles(selectedFiles) {
 }
 
 // ===== Render File List =====
+// ===== Render File List with Drag + Arrow Reorder =====
 function renderList() {
     fileList.innerHTML = "";
+
     files.forEach((file, index) => {
         let li = document.createElement("li");
-        li.textContent = file.name;
+        li.draggable = true;
+        li.dataset.index = index;
 
-        let div = document.createElement("div");
-        div.style.display = "inline-flex";
-        div.style.gap = "5px";
+        li.innerHTML = `
+            ${file.name} 
+            <div style="display:inline-flex; gap:5px">
+                <button class="up-btn">⬆️</button>
+                <button class="down-btn">⬇️</button>
+                <button class="remove-btn">❌</button>
+            </div>
+        `;
 
-        let upBtn = document.createElement("button");
-        upBtn.textContent = "⬆️";
-        upBtn.addEventListener("click", () => moveUp(index));
+        // ===== Arrow Buttons =====
+        li.querySelector(".up-btn").addEventListener("click", () => {
+            if (index === 0) return;
+            [files[index - 1], files[index]] = [files[index], files[index - 1]];
+            renderList();
+        });
+        li.querySelector(".down-btn").addEventListener("click", () => {
+            if (index === files.length - 1) return;
+            [files[index + 1], files[index]] = [files[index], files[index + 1]];
+            renderList();
+        });
 
-        let downBtn = document.createElement("button");
-        downBtn.textContent = "⬇️";
-        downBtn.addEventListener("click", () => moveDown(index));
+        // ===== Remove Button =====
+        li.querySelector(".remove-btn").addEventListener("click", () => {
+            files.splice(index, 1);
+            renderList();
+        });
 
-        let removeBtn = document.createElement("button");
-        removeBtn.textContent = "❌";
-        removeBtn.addEventListener("click", () => removeFile(index));
+        // ===== Drag Events =====
+        li.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("text/plain", index);
+            li.classList.add("dragging");
+        });
 
-        div.append(upBtn, downBtn, removeBtn);
-        li.appendChild(div);
+        li.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            li.classList.add("dragover");
+        });
+
+        li.addEventListener("dragleave", () => li.classList.remove("dragover"));
+
+        li.addEventListener("drop", (e) => {
+            e.preventDefault();
+            li.classList.remove("dragover");
+            let draggedIndex = parseInt(e.dataTransfer.getData("text/plain"));
+            let targetIndex = parseInt(li.dataset.index);
+
+            if (draggedIndex !== targetIndex) {
+                let draggedFile = files[draggedIndex];
+                files.splice(draggedIndex, 1);
+                files.splice(targetIndex, 0, draggedFile);
+                renderList();
+            }
+        });
+
+        li.addEventListener("dragend", () => li.classList.remove("dragging"));
+
         fileList.appendChild(li);
     });
 }
