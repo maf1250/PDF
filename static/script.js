@@ -72,16 +72,16 @@ mergeBtn.addEventListener("click", () => {
         let percent = (e.loaded / e.total) * 100;
         bar.style.width = percent + "%";
     };
-    xhr.onload = () => {
-        let blob = new Blob([xhr.response], { type: "application/pdf" });
-        let link = document.createElement("a");
-        link.href = window.URL.createObjectURL(blob);
-        // Get value from input
-        let userInput = document.getElementById("NewName").value.trim();
-        // Fallback if empty
-        let filename = userInput ? userInput : "merged";
-        link.download = NewName + ".pdf";
-        link.click();
+   xhr.onload = () => {
+    let blob = new Blob([xhr.response], { type: "application/pdf" });
+    let link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    let inputEl = document.getElementById("NewName");
+    let userInput = inputEl.value.trim();
+    let filename = userInput ? userInput : "merged";
+    link.download = NewName + ".pdf";
+    link.click();
+};
 
         progress.classList.add("hidden");
         bar.style.width = "0%";
