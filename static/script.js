@@ -44,7 +44,8 @@ function renderList() {
                 <button class="remove-btn">❌</button>
             </div>
         `;
-        // Arrow buttons
+
+        // ===== Arrow Buttons =====
         li.querySelector(".up-btn").addEventListener("click", () => {
             if (index === 0) return;
             [files[index-1], files[index]] = [files[index], files[index-1]];
@@ -59,10 +60,34 @@ function renderList() {
             files.splice(index, 1);
             renderList();
         });
+
+        // ===== Drag & Drop Sorting =====
+        li.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("text/plain", index);
+            li.classList.add("dragging");
+        });
+        li.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            li.classList.add("dragover");
+        });
+        li.addEventListener("dragleave", () => li.classList.remove("dragover"));
+        li.addEventListener("drop", (e) => {
+            e.preventDefault();
+            li.classList.remove("dragover");
+            const draggedIndex = parseInt(e.dataTransfer.getData("text/plain"));
+            const targetIndex = parseInt(li.dataset.index);
+            if (draggedIndex !== targetIndex) {
+                const draggedFile = files[draggedIndex];
+                files.splice(draggedIndex, 1);
+                files.splice(targetIndex, 0, draggedFile);
+                renderList();
+            }
+        });
+        li.addEventListener("dragend", () => li.classList.remove("dragging"));
+
         fileList.appendChild(li);
     });
 }
-
 // ===== Merge PDFs =====
     mergeBtn.addEventListener("click", () => {
     if (!files.length) { showToast("يرجى اختيار ملف", "error"); return; }
