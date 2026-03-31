@@ -65,7 +65,7 @@ function renderList() {
 
 // ===== Merge PDFs =====
 mergeBtn.addEventListener("click", () => {
-    if (!files.length) { showToast("يرجى اختيار ملف", "error"); return; }
+    if (!files.length) { showToast("يرجى اختيار ملف", "error", 3500); return; }
 
     let formData = new FormData();
     files.forEach(file => formData.append("pdfs", file));
@@ -108,25 +108,63 @@ mergeBtn.addEventListener("click", () => {
 async function deletePages() {
     const file = document.getElementById("deleteFile").files[0];
     const pages = document.getElementById("pagesInput").value;
-    if (!file || !pages) { showToast("يرجى اختيار ملف وإدخال الصفحات", "error"); return; }
+    const btn = event.target; // the button that triggered the function
+    const progressBarContainer = document.getElementById("deleteProgress");
+    const progressBar = document.querySelector(".deleteBar");
 
+    if (!file || !pages) { 
+        showToast("يرجى اختيار ملف وإدخال الصفحات", "error", 3500); 
+        return; 
+    }
+    // Disable button and show progress
+    btn.disabled = true;
+    progressBarContainer.classList.remove("hidden");
+    progressBar.style.width = "0%";
     let formData = new FormData();
     formData.append("pdf", file);
     formData.append("pages", pages);
-
     try {
-        let response = await fetch("/delete-pages", { method: "POST", body: formData });
-        if (!response.ok) throw new Error("حدث خطأ أثناء حذف الصفحات");
-        let blob = await response.blob();
-        let url = window.URL.createObjectURL(blob);
-        let link = document.createElement("a");
-        link.href = url;
-        let nameWithoutExt = file.name.replace(/\.pdf$/i, "");
-        link.download = nameWithoutExt + "_جديد.pdf";
-        link.click();
-        window.URL.revokeObjectURL(url);
-        showToast("✅ تم حذف الصفحات بنجاح", "success");
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "/delete-pages");
+        xhr.responseType = "blob";
+        // Track upload progress
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                let percent = (e.loaded / e.total) * 100;
+                progressBar.style.width = percent + "%";
+            }
+        };
+        xhr.onload = () => {
+            progressBarContainer.classList.add("hidden");
+            progressBar.style.width = "0%";
+            btn.disabled = false;
+            if (xhr.status === 200) {
+                let blob = xhr.response;
+                let url = window.URL.createObjectURL(blob);
+                let link = document.createElement("a");
+                link.href = url;
+                let nameWithoutExt = file.name.replace(/\.pdf$/i, "");
+                link.download = nameWithoutExt + "_جديد.pdf";
+                link.click();
+                window.URL.revokeObjectURL(url);
+                showToast("✅ تم حذف الصفحات بنجاح", "success", 5000);
+            } else {
+                showToast("❌ حدث خطأ أثناء حذف الصفحات", "error", 5000);
+            }
+        };
+        xhr.onerror = () => {
+            progressBarContainer.classList.add("hidden");
+            progressBar.style.width = "0%";
+            btn.disabled = false;
+            showToast("❌ حدث خطأ أثناء الاتصال بالخادم", "error", 5000);
+        };
+
+        xhr.send(formData);
+
     } catch (err) {
-        showToast(err.message, "error");
+        progressBarContainer.classList.add("hidden");
+        progressBar.style.width = "0%";
+        btn.disabled = false;
+        showToast(err.message, "error", 5000);
     }
 }
