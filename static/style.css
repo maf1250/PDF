@@ -112,3 +112,9 @@ background-color: #3395ff;
     opacity: 0;
     transition: opacity 0.9s ease;
 }
+.success {
+    color: #28a745; /* green */
+}
+.error {
+    color: #dc3545; /* red */
+}
