@@ -15,7 +15,7 @@ body {
 #drop-area {
     border: 2px dashed #007bff;
     padding: 3px;
-    border-radius: 80px;
+    border-radius: 30px;
     background: white;
     cursor: pointer;
 }
