@@ -92,9 +92,9 @@ mergeBtn.addEventListener("click", () => {
             link.click();
             window.URL.revokeObjectURL(url);
 
-            showToast("✅ تم الدمج بنجاح", "success");
+            showToast("✅ تم الدمج بنجاح", "success", 5000);
         } else {
-            showToast("❌ حدث خطأ أثناء الدمج", "error");
+            showToast("❌ حدث خطأ أثناء الدمج", "error", 5000);
         }
 
         progress.classList.add("hidden");
