@@ -1,4 +1,3 @@
-// ===== JS =====
 let files = [];
 const dropArea = document.getElementById("drop-area");
 const fileElem = document.getElementById("fileElem");
@@ -6,12 +5,15 @@ const fileList = document.getElementById("file-list");
 const mergeBtn = document.getElementById("mergeBtn");
 const progress = document.getElementById("progress");
 const bar = document.querySelector(".bar");
+const status = document.getElementById("statusText");
 
-// ===== Drag & Drop / File Upload =====
+// ===== Upload =====
 dropArea.addEventListener("click", () => fileElem.click());
+
 fileElem.addEventListener("change", (e) => handleFiles(e.target.files));
 
 dropArea.addEventListener("dragover", (e) => e.preventDefault());
+
 dropArea.addEventListener("drop", (e) => {
     e.preventDefault();
     handleFiles(e.dataTransfer.files);
@@ -20,137 +22,171 @@ dropArea.addEventListener("drop", (e) => {
 function handleFiles(selectedFiles) {
     for (let file of selectedFiles) files.push(file);
     renderList();
+    status.innerText = `تم اختيار ${files.length} ملف`;
 }
 
-// ===== Render File List =====
-// ===== Render File List with Drag + Arrow Reorder =====
+// ===== Render List =====
 function renderList() {
     fileList.innerHTML = "";
+
     files.forEach((file, index) => {
         let li = document.createElement("li");
         li.draggable = true;
         li.dataset.index = index;
+
         li.innerHTML = `
-            ${file.name} 
-            <div style="display:inline-flex; gap:5px">
-                <button class="up-btn">⬆️</button>
-                <button class="down-btn">⬇️</button>
-                <button class="remove-btn">❌</button>
+            ${file.name}
+            <div>
+                <button onclick="moveUp(${index})">⬆️</button>
+                <button onclick="moveDown(${index})">⬇️</button>
+                <button onclick="removeFile(${index})">❌</button>
             </div>
         `;
-        // ===== Arrow Buttons =====
-        li.querySelector(".up-btn").addEventListener("click", () => {
-            if (index === 0) return;
-            [files[index - 1], files[index]] = [files[index], files[index - 1]];
-            renderList();
-        });
-        li.querySelector(".down-btn").addEventListener("click", () => {
-            if (index === files.length - 1) return;
-            [files[index + 1], files[index]] = [files[index], files[index + 1]];
-            renderList();
-        });
-        // ===== Remove Button =====
-        li.querySelector(".remove-btn").addEventListener("click", () => {
-            files.splice(index, 1);
-            renderList();
-        });
-        // ===== Drag Events =====
+
+        // Drag logic
         li.addEventListener("dragstart", (e) => {
             e.dataTransfer.setData("text/plain", index);
             li.classList.add("dragging");
         });
+
         li.addEventListener("dragover", (e) => {
             e.preventDefault();
             li.classList.add("dragover");
         });
+
         li.addEventListener("dragleave", () => li.classList.remove("dragover"));
+
         li.addEventListener("drop", (e) => {
             e.preventDefault();
             li.classList.remove("dragover");
-            let draggedIndex = parseInt(e.dataTransfer.getData("text/plain"));
-            let targetIndex = parseInt(li.dataset.index);
-            if (draggedIndex !== targetIndex) {
-                let draggedFile = files[draggedIndex];
-                files.splice(draggedIndex, 1);
-                files.splice(targetIndex, 0, draggedFile);
-                renderList();
-            }
+
+            let draggedIndex = e.dataTransfer.getData("text/plain");
+
+            let dragged = files.splice(draggedIndex, 1)[0];
+            files.splice(index, 0, dragged);
+
+            renderList();
         });
+
         li.addEventListener("dragend", () => li.classList.remove("dragging"));
+
         fileList.appendChild(li);
     });
 }
-// ===== Move / Remove Files =====
-function moveUp(index) {
-    if (index === 0) return;
-    [files[index - 1], files[index]] = [files[index], files[index - 1]];
+
+function moveUp(i) {
+    if (i === 0) return;
+    [files[i-1], files[i]] = [files[i], files[i-1]];
     renderList();
 }
-function moveDown(index) {
-    if (index === files.length - 1) return;
-    [files[index + 1], files[index]] = [files[index], files[index + 1]];
+
+function moveDown(i) {
+    if (i === files.length - 1) return;
+    [files[i+1], files[i]] = [files[i], files[i+1]];
     renderList();
 }
-function removeFile(index) {
-    files.splice(index, 1);
+
+function removeFile(i) {
+    files.splice(i, 1);
     renderList();
 }
-// ===== Merge PDFs =====
+
+// ===== Merge =====
 mergeBtn.addEventListener("click", () => {
-    if (files.length === 0) { alert("يرجى اختيار ملف");
-    return;}
+
+    if (files.length === 0) {
+        alert("يرجى اختيار ملف");
+        return;
+    }
+
     let formData = new FormData();
-    files.forEach(file => formData.append("pdfs", file));
+    files.forEach(f => formData.append("pdfs", f));
+
     progress.classList.remove("hidden");
+    status.innerText = "جاري رفع الملفات...";
+
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/merge");
     xhr.responseType = "blob";
+
     xhr.upload.onprogress = (e) => {
         let percent = (e.loaded / e.total) * 100;
         bar.style.width = percent + "%";
+        status.classList.remove("success", "error");
+        status.innerText = `جاري الرفع ${Math.round(percent)}%`;
     };
+
     xhr.onload = () => {
+
         if (xhr.status === 200) {
+
+            status.innerText = "جاري الدمج...";
+
             let blob = xhr.response;
-            let url = window.URL.createObjectURL(blob);
+            let url = URL.createObjectURL(blob);
+
             let link = document.createElement("a");
             link.href = url;
-            let inputEl = document.getElementById("NewName");
-            let userInput = inputEl.value.trim();
-            let filename = userInput ? userInput : "merged";
-            link.download = filename + ".pdf";
+
+            let name = document.getElementById("NewName").value.trim() || "merged";
+            link.download = name + ".pdf";
+
             link.click();
-            window.URL.revokeObjectURL(url);
-        } else {
-            alert("حدث خطأ أثناء الدمج");
-        }
+            URL.revokeObjectURL(url);
+
+            status.innerText = "✅ تم الدمج بنجاح";
+            status.className = "success";
+} else {
+    status.innerText = "❌ حدث خطأ";
+    status.className = "error";}
+
         progress.classList.add("hidden");
         bar.style.width = "0%";
+
+        // fade out
+        setTimeout(() => {
+            status.classList.add("fade-out");
+            setTimeout(() => {
+                status.innerText = "";
+                status.classList.remove("fade-out");
+            }, 300);
+        }, 2000);
     };
+
     xhr.send(formData);
 });
-// ===== Delete Pages from PDF =====
+
+// ===== Delete Pages =====
 async function deletePages() {
+
     const file = document.getElementById("deleteFile").files[0];
     const pages = document.getElementById("pagesInput").value;
+
     if (!file || !pages) {
         alert("يرجى اختيار ملف وإدخال الصفحات");
         return;
     }
+
     let formData = new FormData();
     formData.append("pdf", file);
     formData.append("pages", pages);
-    let response = await fetch("/delete-pages", { method: "POST", body: formData });
-    if (!response.ok) {
-        alert("حدث خطأ أثناء حذف الصفحات");
+
+    let res = await fetch("/delete-pages", { method: "POST", body: formData });
+
+    if (!res.ok) {
+        alert("حدث خطأ");
         return;
     }
-    let blob = await response.blob();
-    let url = window.URL.createObjectURL(blob);
+
+    let blob = await res.blob();
+    let url = URL.createObjectURL(blob);
+
     let link = document.createElement("a");
     link.href = url;
-    let nameWithoutExt = file.name.replace(/\.pdf$/i, "");
-    link.download = nameWithoutExt + "_جديد.pdf";
+
+    let name = file.name.replace(".pdf", "");
+    link.download = name + "_جديد.pdf";
+
     link.click();
-    window.URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
 }
