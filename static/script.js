@@ -106,7 +106,7 @@ mergeBtn.addEventListener("click", () => {
         if (e.lengthComputable) {
             let percent = (e.loaded / e.total) * 100;
             bar.style.width = percent + "%";
-            showToast(`جاري الرفع ${Math.round(percent)}%`, "success", 5000);
+            showToast(`جار الدمج ${Math.round(percent)}%`, "success", 5000);
         }
     };
 
@@ -118,7 +118,7 @@ mergeBtn.addEventListener("click", () => {
         if (xhr.status === 200) {
             let blob = xhr.response;
             let filename = document.getElementById("NewName").value.trim() || "merged";
-            saveAs(blob, filename + ".pdf");  // ✅ FileSaver handles all platforms
+            saveAs(blob, filename + ".pdf");  //  FileSaver handles all platforms
             showToast("✅ تم الدمج بنجاح", "success");
         } else {
             showToast("❌ حدث خطأ أثناء الدمج", "error", 5000);
@@ -176,7 +176,7 @@ async function deletePages(event) {
             if (xhr.status === 200) {
                 let blob = xhr.response;
                 let nameWithoutExt = file.name.replace(/\.pdf$/i, "");
-                saveAs(blob, nameWithoutExt + "_جديد.pdf"); // ✅ FileSaver works everywhere
+                saveAs(blob, nameWithoutExt + "_جديد.pdf"); //  FileSaver works everywhere
                 showToast("✅ تم حذف الصفحات بنجاح", "success", 5000);
             } else {
                 showToast("❌ حدث خطأ أثناء حذف الصفحات", "error", 5000);
