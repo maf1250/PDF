@@ -15,9 +15,11 @@ function showToast(msg, type="success", duration=500) {
     setTimeout(() => { toast.className = "toast"; }, duration);
 }
 
-// ===== Drag & Drop =====
+// ===== Drag & Drop + Mobile Touch =====
 dropArea.addEventListener("click", () => fileElem.click());
+dropArea.addEventListener("touchstart", () => fileElem.click()); // iOS/Android tap
 fileElem.addEventListener("change", e => handleFiles(e.target.files));
+
 dropArea.addEventListener("dragover", e => e.preventDefault());
 dropArea.addEventListener("drop", e => {
     e.preventDefault();
@@ -61,7 +63,7 @@ function renderList() {
             renderList();
         });
 
-        // Drag & Drop Sorting
+        // Drag & Drop Sorting (Desktop only)
         li.addEventListener("dragstart", (e) => {
             e.dataTransfer.setData("text/plain", index);
             li.classList.add("dragging");
@@ -89,24 +91,25 @@ function renderList() {
     });
 }
 
-// ===== Merge PDFs =====
+// ===== Merge PDFs (iOS/Android/Desktop compatible) =====
 mergeBtn.addEventListener("click", () => {
     if (!files.length) { showToast("يرجى اختيار ملف", "error"); return; }
     mergeBtn.disabled = true;
 
-    let formData = new FormData();
+    const formData = new FormData();
     files.forEach(file => formData.append("pdfs", file));
+
     progress.classList.remove("hidden");
 
-    let xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
     xhr.open("POST", "/merge");
     xhr.responseType = "blob";
 
     xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
-            let percent = (e.loaded / e.total) * 100;
+            const percent = (e.loaded / e.total) * 100;
             bar.style.width = percent + "%";
-            showToast(`جار الدمج ${Math.round(percent)}%`, "success", 5000);
+            showToast(`جار الدمج ${Math.round(percent)}%`, "success", 3000);
         }
     };
 
@@ -116,9 +119,9 @@ mergeBtn.addEventListener("click", () => {
         bar.style.width = "0%";
 
         if (xhr.status === 200) {
-            let blob = xhr.response;
-            let filename = document.getElementById("NewName").value.trim() || "merged";
-            saveAs(blob, filename + ".pdf");  //  FileSaver handles all platforms
+            const blob = xhr.response;
+            const filename = document.getElementById("NewName").value.trim() || "merged";
+            saveAs(blob, filename + ".pdf"); // ✅ works on all platforms
             showToast("✅ تم الدمج بنجاح", "success");
         } else {
             showToast("❌ حدث خطأ أثناء الدمج", "error", 5000);
@@ -135,7 +138,7 @@ mergeBtn.addEventListener("click", () => {
     xhr.send(formData);
 });
 
-// ===== Delete Pages =====
+// ===== Delete Pages (iOS/Android/Desktop compatible) =====
 async function deletePages(event) {
     const file = document.getElementById("deleteFile").files[0];
     const pages = document.getElementById("pagesInput").value;
@@ -152,50 +155,42 @@ async function deletePages(event) {
     progressBarContainer.classList.remove("hidden");
     progressBar.style.width = "0%";
 
-    let formData = new FormData();
+    const formData = new FormData();
     formData.append("pdf", file);
     formData.append("pages", pages);
 
-    try {
-        let xhr = new XMLHttpRequest();
-        xhr.open("POST", "/delete-pages");
-        xhr.responseType = "blob";
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/delete-pages");
+    xhr.responseType = "blob";
 
-        xhr.upload.onprogress = (e) => {
-            if (e.lengthComputable) {
-                let percent = (e.loaded / e.total) * 100;
-                progressBar.style.width = percent + "%";
-            }
-        };
+    xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+            const percent = (e.loaded / e.total) * 100;
+            progressBar.style.width = percent + "%";
+        }
+    };
 
-        xhr.onload = () => {
-            btn.disabled = false;
-            progressBarContainer.classList.add("hidden");
-            progressBar.style.width = "0%";
-
-            if (xhr.status === 200) {
-                let blob = xhr.response;
-                let nameWithoutExt = file.name.replace(/\.pdf$/i, "");
-                saveAs(blob, nameWithoutExt + "_جديد.pdf"); //  FileSaver works everywhere
-                showToast("✅ تم حذف الصفحات بنجاح", "success", 5000);
-            } else {
-                showToast("❌ حدث خطأ أثناء حذف الصفحات", "error", 5000);
-            }
-        };
-
-        xhr.onerror = () => {
-            btn.disabled = false;
-            progressBarContainer.classList.add("hidden");
-            progressBar.style.width = "0%";
-            showToast("❌ حدث خطأ أثناء الاتصال بالخادم", "error", 5000);
-        };
-
-        xhr.send(formData);
-
-    } catch (err) {
+    xhr.onload = () => {
         btn.disabled = false;
         progressBarContainer.classList.add("hidden");
         progressBar.style.width = "0%";
-        showToast(err.message, "error", 5000);
-    }
+
+        if (xhr.status === 200) {
+            const blob = xhr.response;
+            const nameWithoutExt = file.name.replace(/\.pdf$/i, "");
+            saveAs(blob, nameWithoutExt + "_جديد.pdf"); // ✅ works everywhere
+            showToast("✅ تم حذف الصفحات بنجاح", "success", 5000);
+        } else {
+            showToast("❌ حدث خطأ أثناء حذف الصفحات", "error", 5000);
+        }
+    };
+
+    xhr.onerror = () => {
+        btn.disabled = false;
+        progressBarContainer.classList.add("hidden");
+        progressBar.style.width = "0%";
+        showToast("❌ حدث خطأ أثناء الاتصال بالخادم", "error", 5000);
+    };
+
+    xhr.send(formData);
 }
