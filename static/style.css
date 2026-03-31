@@ -89,10 +89,10 @@ background-color: #3395ff;
   font-size: 15px;
   transition: all 0.3s ease;
 }
-#NewName:focus {
-  border-color: #4CAF50;
-  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
-  outline: none;
+#NewName:focus, #pagesInput:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+    outline: none;
 }
 #pagesInput {
   padding: 10px 15px;
@@ -118,3 +118,25 @@ background-color: #3395ff;
 .error {
     color: #dc3545; /* red */
 }
+/* ===== Toast Notifications ===== */
+.toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-size: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s, transform 0.5s;
+    z-index: 9999;
+}
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.toast.success { background: #28a745; }
+.toast.error { background: #dc3545; }
