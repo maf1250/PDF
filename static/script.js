@@ -64,24 +64,24 @@ function renderList() {
 }
 
 // ===== Merge PDFs =====
-mergeBtn.addEventListener("click", () => {
-    if (!files.length) { showToast("يرجى اختيار ملف", "error", 3500); return; }
-
+    mergeBtn.addEventListener("click", () => {
+    if (!files.length) { showToast("يرجى اختيار ملف", "error"); return; }
+  //  Disable the  button
+    mergeBtn.disabled = true;
     let formData = new FormData();
     files.forEach(file => formData.append("pdfs", file));
     progress.classList.remove("hidden");
-
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/merge");
     xhr.responseType = "blob";
-
     xhr.upload.onprogress = (e) => {
         let percent = (e.loaded / e.total) * 100;
         bar.style.width = percent + "%";
-        showToast(`جاري الرفع ${Math.round(percent)}%`, "success", 3000);
+        showToast(`جاري الرفع ${Math.round(percent)}%`, "success", 5000);
     };
-
     xhr.onload = () => {
+    //  Re-enable the button
+        mergeBtn.disabled = false;
         if (xhr.status === 200) {
             let blob = xhr.response;
             let url = window.URL.createObjectURL(blob);
@@ -91,16 +91,19 @@ mergeBtn.addEventListener("click", () => {
             link.download = filename + ".pdf";
             link.click();
             window.URL.revokeObjectURL(url);
-
-            showToast("✅ تم الدمج بنجاح", "success", 5000);
+            showToast("✅ تم الدمج بنجاح", "success");
         } else {
             showToast("❌ حدث خطأ أثناء الدمج", "error", 5000);
         }
-
         progress.classList.add("hidden");
         bar.style.width = "0%";
     };
-
+   xhr.onerror = () => {
+        mergeBtn.disabled = false; // ✅ Re-enable on error
+        showToast("❌ حدث خطأ أثناء الاتصال بالخادم", "error", 5000);
+        progress.classList.add("hidden");
+        bar.style.width = "0%";
+    };
     xhr.send(formData);
 });
 
