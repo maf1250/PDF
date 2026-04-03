@@ -1,196 +1,133 @@
-// ===== JS =====
-let files = [];
-const dropArea = document.getElementById("drop-area");
-const fileElem = document.getElementById("fileElem");
-const fileList = document.getElementById("file-list");
-const mergeBtn = document.getElementById("mergeBtn");
-const progress = document.getElementById("progress");
-const bar = document.querySelector(".bar");
-const toast = document.getElementById("toast");
+// ===== Elements =====
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const dropZoneText = document.getElementById('drop-zone-text');
+const form = document.getElementById('upload-form');
 
-// ===== Toast helper =====
-function showToast(msg, type="success", duration=500) {
-    toast.innerText = msg;
-    toast.className = `toast show ${type}`;
-    setTimeout(() => { toast.className = "toast"; }, duration);
+// ===== Toast Function =====
+function showToast(message, type = "") {
+    const toast = document.getElementById("toast");
+
+    toast.textContent = message;
+    toast.className = "show " + type;
+
+    setTimeout(() => {
+        toast.className = toast.className.replace("show", "");
+    }, 2500);
 }
 
-// ===== Drag & Drop + Mobile Touch =====
-dropArea.addEventListener("click", () => fileElem.click());
-dropArea.addEventListener("touchstart", () => fileElem.click()); // iOS/Android tap
-fileElem.addEventListener("change", e => handleFiles(e.target.files));
+// ===== Drag & Drop =====
+dropZone.addEventListener('click', () => fileInput.click());
 
-dropArea.addEventListener("dragover", e => e.preventDefault());
-dropArea.addEventListener("drop", e => {
+dropZone.addEventListener('dragover', e => {
     e.preventDefault();
-    handleFiles(e.dataTransfer.files);
+    dropZone.classList.add('dragover');
 });
 
-function handleFiles(selectedFiles) {
-    for (let file of selectedFiles) files.push(file);
-    renderList();
-}
-
-// ===== Render File List =====
-function renderList() {
-    fileList.innerHTML = "";
-    files.forEach((file, index) => {
-        let li = document.createElement("li");
-        li.draggable = true;
-        li.dataset.index = index;
-        li.innerHTML = `
-            ${file.name} 
-            <div style="display:inline-flex; gap:5px">
-                <button class="up-btn">⬆️</button>
-                <button class="down-btn">⬇️</button>
-                <button class="remove-btn">❌</button>
-            </div>
-        `;
-
-        // Arrow buttons
-        li.querySelector(".up-btn").addEventListener("click", () => {
-            if (index === 0) return;
-            [files[index-1], files[index]] = [files[index], files[index-1]];
-            renderList();
-        });
-        li.querySelector(".down-btn").addEventListener("click", () => {
-            if (index === files.length-1) return;
-            [files[index+1], files[index]] = [files[index], files[index+1]];
-            renderList();
-        });
-        li.querySelector(".remove-btn").addEventListener("click", () => {
-            files.splice(index, 1);
-            renderList();
-        });
-
-        // Drag & Drop Sorting (Desktop only)
-        li.addEventListener("dragstart", (e) => {
-            e.dataTransfer.setData("text/plain", index);
-            li.classList.add("dragging");
-        });
-        li.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            li.classList.add("dragover");
-        });
-        li.addEventListener("dragleave", () => li.classList.remove("dragover"));
-        li.addEventListener("drop", (e) => {
-            e.preventDefault();
-            li.classList.remove("dragover");
-            const draggedIndex = parseInt(e.dataTransfer.getData("text/plain"));
-            const targetIndex = parseInt(li.dataset.index);
-            if (draggedIndex !== targetIndex) {
-                const draggedFile = files[draggedIndex];
-                files.splice(draggedIndex, 1);
-                files.splice(targetIndex, 0, draggedFile);
-                renderList();
-            }
-        });
-        li.addEventListener("dragend", () => li.classList.remove("dragging"));
-
-        fileList.appendChild(li);
-    });
-}
-
-// ===== Merge PDFs (iOS/Android/Desktop compatible) =====
-mergeBtn.addEventListener("click", () => {
-    if (!files.length) { showToast("يرجى اختيار ملف", "error"); return; }
-    mergeBtn.disabled = true;
-
-    const formData = new FormData();
-    files.forEach(file => formData.append("pdfs", file));
-
-    progress.classList.remove("hidden");
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/merge");
-    xhr.responseType = "blob";
-
-    xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-            const percent = (e.loaded / e.total) * 100;
-            bar.style.width = percent + "%";
-            showToast(`جار الدمج ${Math.round(percent)}%`, "success", 3000);
-        }
-    };
-
-    xhr.onload = () => {
-        mergeBtn.disabled = false;
-        progress.classList.add("hidden");
-        bar.style.width = "0%";
-
-        if (xhr.status === 200) {
-            const blob = xhr.response;
-            const filename = document.getElementById("NewName").value.trim() || "merged";
-            saveAs(blob, filename + ".pdf"); // ✅ works on all platforms
-            showToast("✅ تم الدمج بنجاح", "success");
-        } else {
-            showToast("❌ حدث خطأ أثناء الدمج", "error", 5000);
-        }
-    };
-
-    xhr.onerror = () => {
-        mergeBtn.disabled = false;
-        progress.classList.add("hidden");
-        bar.style.width = "0%";
-        showToast("❌ حدث خطأ أثناء الاتصال بالخادم", "error", 5000);
-    };
-
-    xhr.send(formData);
+dropZone.addEventListener('dragleave', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
 });
 
-// ===== Delete Pages (iOS/Android/Desktop compatible) =====
-async function deletePages(event) {
-    const file = document.getElementById("deleteFile").files[0];
-    const pages = document.getElementById("pagesInput").value;
-    const btn = event.target;
-    const progressBarContainer = document.getElementById("deleteProgress");
-    const progressBar = document.querySelector(".deleteBar");
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files;
 
-    if (!file || !pages) { 
-        showToast("يرجى اختيار ملف وإدخال الصفحات", "error"); 
-        return; 
+    if (fileInput.files.length > 0) {
+        dropZoneText.textContent = fileInput.files[0].name;
+    }
+});
+
+// ===== File Input Change =====
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+        dropZoneText.textContent = fileInput.files[0].name;
+    } else {
+        dropZoneText.textContent = "اسحب وافلت ملف الاكسل هنا\nأو اضغط لاختياره";
+    }
+});
+
+// ===== Gender Toggle =====
+const genderFilter = document.getElementById('gender_filter');
+const genderSelect = document.getElementById('gender_select');
+const genderField = document.getElementById('gender-field');
+
+genderFilter.addEventListener('change', () => {
+    if (genderFilter.value === 'yes') {
+        genderSelect.classList.remove('hidden');
+        genderSelect.classList.add('show');
+        genderField.classList.remove('hidden');
+        genderField.classList.add('show');
+    } else {
+        genderSelect.classList.remove('show');
+        genderSelect.classList.add('hidden');
+        genderField.classList.remove('show');
+        genderField.classList.add('hidden');
+    }
+});
+
+// ===== Manual Fields Toggle =====
+const manualSelect = document.getElementById('manual_select');
+const manualFields = document.getElementById('manual-fields');
+
+manualSelect.addEventListener('change', () => {
+    if (manualSelect.value === 'yes') {
+        manualFields.classList.remove('hidden');
+        manualFields.classList.add('show');
+    } else {
+        manualFields.classList.remove('show');
+        manualFields.classList.add('hidden');
+    }
+});
+
+// ===== Submit with AJAX =====
+form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (fileInput.files.length === 0) {
+        showToast("الرجاء اختيار ملف أولاً", "error", 5000);
+        return;
     }
 
-    btn.disabled = true;
-    progressBarContainer.classList.remove("hidden");
-    progressBar.style.width = "0%";
-
-    const formData = new FormData();
-    formData.append("pdf", file);
-    formData.append("pages", pages);
+    const formData = new FormData(form);
+    const originalFileName = fileInput.files[0].name;
+    const vcfFileName = originalFileName.replace(/\.[^/.]+$/, ".vcf");
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/delete-pages");
-    xhr.responseType = "blob";
+    xhr.open('POST', '/upload', true);
 
-    xhr.upload.onprogress = (e) => {
+    // ===== Upload Progress =====
+    xhr.upload.addEventListener('progress', function (e) {
         if (e.lengthComputable) {
-            const percent = (e.loaded / e.total) * 100;
-            progressBar.style.width = percent + "%";
+            const percent = Math.round((e.loaded / e.total) * 100);
+
+            // لتجنب الإزعاج: يظهر كل 10%
+            if (percent % 10 === 0) {
+                showToast("جاري الرفع: " + percent + "%");
+            }
         }
-    };
+    });
 
-    xhr.onload = () => {
-        btn.disabled = false;
-        progressBarContainer.classList.add("hidden");
-        progressBar.style.width = "0%";
-
+    // ===== Response =====
+    xhr.onload = function () {
         if (xhr.status === 200) {
-            const blob = xhr.response;
-            const nameWithoutExt = file.name.replace(/\.pdf$/i, "");
-            saveAs(blob, nameWithoutExt + "_جديد.pdf"); // ✅ works everywhere
-            showToast("✅ تم حذف الصفحات بنجاح", "success", 5000);
+            const blob = new Blob([xhr.response], { type: "application/octet-stream" });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = vcfFileName;
+            link.click();
+
+            showToast("تم التحويل بنجاح!", "success", 5000);
         } else {
-            showToast("❌ حدث خطأ أثناء حذف الصفحات", "error", 5000);
+            showToast("حدث خطأ أثناء التحويل", "error", 5000);
         }
     };
 
-    xhr.onerror = () => {
-        btn.disabled = false;
-        progressBarContainer.classList.add("hidden");
-        progressBar.style.width = "0%";
-        showToast("❌ حدث خطأ أثناء الاتصال بالخادم", "error", 5000);
+    xhr.onerror = function () {
+        showToast("فشل الاتصال بالسيرفر", "error", 5000);
     };
 
+    xhr.responseType = 'blob';
     xhr.send(formData);
-}
+});
