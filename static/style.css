@@ -129,7 +129,7 @@ background-color: #3395ff;
     min-width: 70px;   /* ensures small messages still look good */
     background-color: #333;
     color: white;
-    border-radius: 40px;
+    border-radius: 80px;
     font-size: 15px;
     text-align: center;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
