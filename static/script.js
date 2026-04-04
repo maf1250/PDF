@@ -137,17 +137,17 @@ mergeBtn.addEventListener("click", () => {
 
 // ===== Delete Pages =====
 async function deletePages(event) {
+    const btn = event.currentTarget;
+    // Prevent double click
+    if (btn.disabled) return;
     const file = document.getElementById("deleteFile").files[0];
     const pages = document.getElementById("pagesInput").value;
-    const btn = event.target;
     const progressBarContainer = document.getElementById("deleteProgress");
     const progressBar = document.querySelector(".deleteBar");
-
     if (!file || !pages) { 
         showToast("يرجى اختيار ملف وإدخال الصفحات", "error"); 
         return; 
     }
-
     btn.disabled = true;
     progressBarContainer.classList.remove("hidden");
     progressBar.style.width = "0%";
