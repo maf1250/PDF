@@ -9,7 +9,7 @@ const bar = document.querySelector(".bar");
 const toast = document.getElementById("toast");
 
 // ===== Toast helper =====
-function showToast(msg, type="success", duration=500) {
+function showToast(msg, type="success", duration=5000) {
     toast.innerText = msg;
     toast.className = `toast show ${type}`;
     setTimeout(() => { toast.className = "toast"; }, duration);
@@ -118,7 +118,7 @@ mergeBtn.addEventListener("click", () => {
         if (xhr.status === 200) {
             let blob = xhr.response;
             let filename = document.getElementById("NewName").value.trim() || "merged";
-            saveAs(blob, filename + ".pdf");  // ✅ FileSaver handles all platforms
+            saveAs(blob, filename + ".pdf");  //  FileSaver handles all platforms
             showToast("✅ تم الدمج بنجاح", "success");
         } else {
             showToast("❌ حدث خطأ أثناء الدمج", "error", 5000);
@@ -176,7 +176,7 @@ async function deletePages(event) {
             if (xhr.status === 200) {
                 let blob = xhr.response;
                 let nameWithoutExt = file.name.replace(/\.pdf$/i, "");
-                saveAs(blob, nameWithoutExt + "_جديد.pdf"); // ✅ FileSaver works everywhere
+                saveAs(blob, nameWithoutExt + "_جديد.pdf"); // FileSaver works everywhere
                 showToast("✅ تم حذف الصفحات بنجاح", "success", 5000);
             } else {
                 showToast("❌ حدث خطأ أثناء حذف الصفحات", "error", 5000);
@@ -189,7 +189,7 @@ async function deletePages(event) {
             progressBar.style.width = "0%";
             showToast("❌ حدث خطأ أثناء الاتصال بالخادم", "error", 5000);
         };
-
+        
         xhr.send(formData);
 
     } catch (err) {
