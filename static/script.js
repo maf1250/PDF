@@ -106,7 +106,7 @@ mergeBtn.addEventListener("click", () => {
         if (e.lengthComputable) {
             let percent = (e.loaded / e.total) * 100;
             bar.style.width = percent + "%";
-            showToast(`جاري الرفع ${Math.round(percent)}%`, "success", 5000);
+            showToast(`جاري الدمج ${Math.round(percent)}%`, "success", 5000);
         }
     };
 
